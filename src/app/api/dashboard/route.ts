@@ -71,16 +71,19 @@ export async function GET() {
       include: { productos: true },
     });
 
-    const totalInvertidoMes = importacionesMesData.reduce((sum: number, imp) => {
+    type ImportacionConProductos = typeof importacionesMesData[number];
+    type ProductoImportado = ImportacionConProductos['productos'][number];
+
+    const totalInvertidoMes = importacionesMesData.reduce((sum: number, imp: ImportacionConProductos) => {
       return (
         sum +
-        imp.productos.reduce((s: number, p) => s + Number(p.importeUSD), 0)
+        imp.productos.reduce((s: number, p: ProductoImportado) => s + Number(p.importeUSD), 0)
       );
     }, 0);
 
-    const totalUnidadesMes = importacionesMesData.reduce((sum: number, imp) => {
+    const totalUnidadesMes = importacionesMesData.reduce((sum: number, imp: ImportacionConProductos) => {
       return (
-        sum + imp.productos.reduce((s: number, p) => s + p.cantidadUnidades, 0)
+        sum + imp.productos.reduce((s: number, p: ProductoImportado) => s + p.cantidadUnidades, 0)
       );
     }, 0);
 
