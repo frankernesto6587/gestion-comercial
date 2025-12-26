@@ -62,7 +62,7 @@ export async function GET() {
 
     // Filtrar productos con stock bajo (Prisma no permite comparar campos)
     const stockBajo = productosStockBajo.filter(
-      (inv) => inv.cantidadActual <= inv.cantidadMinima
+      (inv: typeof productosStockBajo[number]) => inv.cantidadActual <= inv.cantidadMinima
     );
 
     // Calcular totales de importaciones del mes
