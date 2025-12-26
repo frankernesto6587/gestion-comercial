@@ -87,18 +87,23 @@ export async function GET() {
       );
     }, 0);
 
+    // Tipos para ultimasImportaciones
+    type UltimaImportacion = typeof ultimasImportaciones[number];
+    type ProductoUltima = UltimaImportacion['productos'][number];
+    type StockBajoItem = typeof stockBajo[number];
+
     // Formatear últimas importaciones
-    const ultimasFormateadas = ultimasImportaciones.map((imp) => ({
+    const ultimasFormateadas = ultimasImportaciones.map((imp: UltimaImportacion) => ({
       id: imp.id,
       fecha: imp.fecha,
       importadora: imp.importadora,
       numeroContenedor: imp.numeroContenedor,
       totalUSD: imp.productos.reduce(
-        (sum, p) => sum + Number(p.importeUSD),
+        (sum: number, p: ProductoUltima) => sum + Number(p.importeUSD),
         0
       ),
       totalUnidades: imp.productos.reduce(
-        (sum, p) => sum + p.cantidadUnidades,
+        (sum: number, p: ProductoUltima) => sum + p.cantidadUnidades,
         0
       ),
       cantidadProductos: imp.productos.length,
@@ -123,7 +128,7 @@ export async function GET() {
         },
       },
       ultimasImportaciones: ultimasFormateadas,
-      alertasStock: stockBajo.map((inv) => ({
+      alertasStock: stockBajo.map((inv: StockBajoItem) => ({
         id: inv.id,
         producto: inv.producto.nombre,
         actual: inv.cantidadActual,
