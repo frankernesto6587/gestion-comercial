@@ -1,65 +1,317 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import {
+  CubeIcon,
+  TruckIcon,
+  ArchiveBoxIcon,
+  CurrencyDollarIcon,
+  ExclamationTriangleIcon,
+  ArrowTrendingUpIcon,
+} from "@heroicons/react/24/outline";
+
+interface Stats {
+  productos: {
+    total: number;
+    activos: number;
+  };
+  importaciones: {
+    total: number;
+    ultimoMes: number;
+    invertidoMes: number;
+    unidadesMes: number;
+  };
+  inventario: {
+    totalUnidades: number;
+    productosConInventario: number;
+    stockBajo: number;
+  };
+}
+
+interface ImportacionReciente {
+  id: number;
+  fecha: string;
+  importadora: string;
+  numeroContenedor: string | null;
+  totalUSD: number;
+  totalUnidades: number;
+  cantidadProductos: number;
+}
+
+interface AlertaStock {
+  id: number;
+  producto: string;
+  actual: number;
+  minimo: number;
+}
+
+interface DashboardData {
+  stats: Stats;
+  ultimasImportaciones: ImportacionReciente[];
+  alertasStock: AlertaStock[];
+}
+
+export default function DashboardPage() {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/dashboard");
+        const result = await response.json();
+        setData(result);
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(value);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "short",
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="text-center py-12 text-muted">
+        Error al cargar el dashboard
+      </div>
+    );
+  }
+
+  const { stats, ultimasImportaciones, alertasStock } = data;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-sm text-muted">
+          Resumen de tu gestión comercial
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Productos */}
+        <div className="card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted">Productos</p>
+              <p className="text-2xl font-bold">{stats.productos.activos}</p>
+              <p className="text-xs text-muted">
+                de {stats.productos.total} total
+              </p>
+            </div>
+            <div className="p-3 rounded-lg bg-primary-light">
+              <CubeIcon className="h-6 w-6 text-primary" />
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Importaciones del mes */}
+        <div className="card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted">Importaciones (30 días)</p>
+              <p className="text-2xl font-bold">{stats.importaciones.ultimoMes}</p>
+              <p className="text-xs text-muted">
+                de {stats.importaciones.total} total
+              </p>
+            </div>
+            <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+              <TruckIcon className="h-6 w-6 text-info" />
+            </div>
+          </div>
         </div>
-      </main>
+
+        {/* Inversión del mes */}
+        <div className="card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted">Invertido (30 días)</p>
+              <p className="text-2xl font-bold">
+                {formatCurrency(stats.importaciones.invertidoMes)}
+              </p>
+              <p className="text-xs text-muted">
+                {stats.importaciones.unidadesMes.toLocaleString()} unidades
+              </p>
+            </div>
+            <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/30">
+              <CurrencyDollarIcon className="h-6 w-6 text-success" />
+            </div>
+          </div>
+        </div>
+
+        {/* Inventario */}
+        <div className="card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted">Stock Total</p>
+              <p className="text-2xl font-bold">
+                {stats.inventario.totalUnidades.toLocaleString()}
+              </p>
+              <p className="text-xs text-muted">unidades en inventario</p>
+            </div>
+            <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+              <ArchiveBoxIcon className="h-6 w-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Últimas importaciones */}
+        <div className="lg:col-span-2 card">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Últimas Importaciones</h2>
+            <Link
+              href="/importaciones"
+              className="text-sm text-primary hover:underline"
+            >
+              Ver todas
+            </Link>
+          </div>
+
+          {ultimasImportaciones.length === 0 ? (
+            <p className="text-center py-8 text-muted">
+              No hay importaciones registradas
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {ultimasImportaciones.map((imp) => (
+                <Link
+                  key={imp.id}
+                  href={`/importaciones/${imp.id}`}
+                  className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-surface-hover transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary-light">
+                      <TruckIcon className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{imp.importadora}</p>
+                      <p className="text-xs text-muted">
+                        {formatDate(imp.fecha)} • {imp.cantidadProductos}{" "}
+                        productos
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-success">
+                      {formatCurrency(imp.totalUSD)}
+                    </p>
+                    <p className="text-xs text-muted">
+                      {imp.totalUnidades.toLocaleString()} unid.
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Alertas de stock */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Alertas de Stock</h2>
+            {alertasStock.length > 0 && (
+              <span className="badge badge-warning">
+                {alertasStock.length}
+              </span>
+            )}
+          </div>
+
+          {alertasStock.length === 0 ? (
+            <div className="text-center py-8">
+              <ArrowTrendingUpIcon className="h-8 w-8 mx-auto text-success mb-2" />
+              <p className="text-muted">Stock en niveles óptimos</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {alertasStock.slice(0, 5).map((alerta) => (
+                <div
+                  key={alerta.id}
+                  className="flex items-center gap-3 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-900/30"
+                >
+                  <ExclamationTriangleIcon className="h-5 w-5 text-warning flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{alerta.producto}</p>
+                    <p className="text-xs text-muted">
+                      Stock: {alerta.actual} / Mínimo: {alerta.minimo}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {alertasStock.length > 5 && (
+                <Link
+                  href="/inventario?stockBajo=true"
+                  className="block text-center text-sm text-primary hover:underline"
+                >
+                  Ver {alertasStock.length - 5} más
+                </Link>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Quick actions */}
+      <div className="card">
+        <h2 className="text-lg font-semibold mb-4">Acciones Rápidas</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Link
+            href="/importaciones/nueva"
+            className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border hover:bg-surface-hover transition-colors"
+          >
+            <TruckIcon className="h-8 w-8 text-primary" />
+            <span className="text-sm font-medium">Nueva Importación</span>
+          </Link>
+          <Link
+            href="/productos"
+            className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border hover:bg-surface-hover transition-colors"
+          >
+            <CubeIcon className="h-8 w-8 text-info" />
+            <span className="text-sm font-medium">Gestionar Productos</span>
+          </Link>
+          <Link
+            href="/inventario"
+            className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border hover:bg-surface-hover transition-colors"
+          >
+            <ArchiveBoxIcon className="h-8 w-8 text-purple-600" />
+            <span className="text-sm font-medium">Ver Inventario</span>
+          </Link>
+          <Link
+            href="/reportes"
+            className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border hover:bg-surface-hover transition-colors"
+          >
+            <ArrowTrendingUpIcon className="h-8 w-8 text-success" />
+            <span className="text-sm font-medium">Generar Reportes</span>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

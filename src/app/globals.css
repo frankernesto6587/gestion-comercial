@@ -1,26 +1,190 @@
 @import "tailwindcss";
 
+/* ============================================
+   Variables CSS para el tema
+   ============================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Colores base */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+
+  /* Colores primarios */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #dbeafe;
+
+  /* Colores de estado */
+  --success: #16a34a;
+  --warning: #eab308;
+  --error: #dc2626;
+  --info: #0ea5e9;
+
+  /* Colores de superficie */
+  --surface: #ffffff;
+  --surface-hover: #f1f5f9;
+  --border: #e2e8f0;
+
+  /* Texto */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+}
+
+/* Tema oscuro - activado por clase .dark */
+.dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --primary-light: #1e3a5f;
+
+  --success: #22c55e;
+  --warning: #facc15;
+  --error: #ef4444;
+  --info: #38bdf8;
+
+  --surface: #1e293b;
+  --surface-hover: #334155;
+  --border: #334155;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-muted: var(--text-muted);
+  --color-secondary: var(--text-secondary);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ============================================
+   Estilos base
+   ============================================ */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   Scrollbar personalizado
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ============================================
+   Clases utilitarias personalizadas
+   ============================================ */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-primary {
+  @apply bg-primary text-white hover:bg-primary-hover focus:ring-primary;
+}
+
+.btn-secondary {
+  @apply bg-surface text-foreground border border-border hover:bg-surface-hover focus:ring-border;
+}
+
+.btn-danger {
+  @apply bg-error text-white hover:bg-red-700 focus:ring-error;
+}
+
+.input {
+  @apply w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.label {
+  @apply flex items-center text-sm font-medium text-foreground mb-1;
+}
+
+.card {
+  @apply rounded-xl border border-border bg-surface p-6 shadow-sm;
+}
+
+.table-container {
+  @apply overflow-x-auto rounded-lg border border-border;
+}
+
+.table {
+  @apply min-w-full divide-y divide-border;
+}
+
+.table th {
+  @apply bg-surface-hover px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary;
+}
+
+.table td {
+  @apply whitespace-nowrap px-4 py-3 text-sm text-foreground;
+}
+
+.table tr:hover td {
+  @apply bg-surface-hover;
+}
+
+/* ============================================
+   Estados de formulario
+   ============================================ */
+.input-error {
+  @apply border-error focus:border-error focus:ring-error/20;
+}
+
+.error-message {
+  @apply mt-1 text-xs text-error;
+}
+
+/* ============================================
+   Badges
+   ============================================ */
+.badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+}
+
+.badge-success {
+  @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400;
+}
+
+.badge-warning {
+  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400;
+}
+
+.badge-error {
+  @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400;
+}
+
+.badge-info {
+  @apply bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400;
 }

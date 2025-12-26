@@ -39,3 +39,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma
+
+# Local development
+.pnpm-store/
+.playwright-mcp/
+.claude/
+.vscode/
+nul
+
+# Data files (test data)
+*.xls
+*.xlsx
+
+# Screenshots
+*.png

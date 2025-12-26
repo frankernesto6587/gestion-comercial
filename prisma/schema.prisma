@@ -1,0 +1,251 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Producto {
+  id            Int                 @id @default(autoincrement())
+  codefref      Int?                @unique
+  nombre        String
+  descripcion   String?
+  unidadMedida  String              @default("unidad")
+  pack          Int                 @default(24)
+  activo        Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  inventario    Inventario?
+  lineasVenta   LineaVenta[]
+  importaciones ProductoImportado[]
+
+  @@map("productos")
+}
+
+model Importadora {
+  id            Int           @id @default(autoincrement())
+  nombre        String        @unique
+  descripcion   String?
+  activo        Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  importaciones Importacion[]
+
+  @@map("importadoras")
+}
+
+model Proveedor {
+  id            Int           @id @default(autoincrement())
+  nombre        String        @unique
+  descripcion   String?
+  activo        Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  importaciones Importacion[]
+
+  @@map("proveedores")
+}
+
+model Importacion {
+  id                        Int                    @id @default(autoincrement())
+  fecha                     DateTime               @default(now())
+  numeroContenedor          String?
+  importadoraId             Int
+  proveedorId               Int
+  observaciones             String?
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
+  porcentajeAporteMasMargen Decimal                @default(15) @db.Decimal(8, 4)
+  porcentajeMargenComercial Decimal                @default(85) @db.Decimal(8, 4)
+  porcentajeMargenUtilidad  Decimal                @default(4) @db.Decimal(8, 4)
+  porcentajeMerma           Decimal                @default(2) @db.Decimal(8, 4)
+  porcentajeVentaEfectivo   Decimal                @default(4) @db.Decimal(8, 4)
+  porcentajeVentaFiscal     Decimal                @default(5) @db.Decimal(8, 4)
+  porcentajeVentaUSD        Decimal                @default(91) @db.Decimal(8, 4)
+  porcentajeOtrosGastos     Decimal                @default(10) @db.Decimal(8, 4)
+  gastos                    GastoContenedor[]
+  importadora               Importadora            @relation(fields: [importadoraId], references: [id])
+  proveedor                 Proveedor              @relation(fields: [proveedorId], references: [id])
+  productos                 ProductoImportado[]
+  tasasCambio               TasaCambioContenedor[]
+
+  @@map("importaciones")
+}
+
+model ProductoImportado {
+  id                        Int          @id @default(autoincrement())
+  importacionId             Int
+  productoId                Int
+  cantidadUnidades          Int
+  precioUnitarioUSD         Decimal?     @db.Decimal(14, 4)
+  importeUSD                Decimal      @db.Decimal(14, 4)
+  porcentajeMerma           Decimal      @default(2) @db.Decimal(8, 4)
+  margenUtilidad            Decimal      @default(15) @db.Decimal(8, 4)
+  costoUnitarioUSD          Decimal?     @db.Decimal(14, 4)
+  precioVentaUSD            Decimal?     @db.Decimal(14, 4)
+  precioVentaCUP            Decimal?     @db.Decimal(14, 4)
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @updatedAt
+  mediaPrecioFiscal         Decimal      @default(173) @db.Decimal(14, 4)
+  mediaPrecioFiscalEfectivo Decimal      @default(173) @db.Decimal(14, 4)
+  ventaRealEstimada         Decimal?     @db.Decimal(14, 4)
+  lineasVenta               LineaVenta[]
+  importacion               Importacion  @relation(fields: [importacionId], references: [id], onDelete: Cascade)
+  producto                  Producto     @relation(fields: [productoId], references: [id])
+
+  @@map("productos_importados")
+}
+
+model Inventario {
+  id             Int                    @id @default(autoincrement())
+  productoId     Int                    @unique
+  cantidadActual Int                    @default(0)
+  cantidadMinima Int                    @default(0)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  producto       Producto               @relation(fields: [productoId], references: [id])
+  movimientos    MovimientoInventario[]
+
+  @@map("inventarios")
+}
+
+model MovimientoInventario {
+  id           Int            @id @default(autoincrement())
+  inventarioId Int
+  tipo         TipoMovimiento
+  cantidad     Int
+  motivo       String?
+  referencia   String?
+  fecha        DateTime       @default(now())
+  createdAt    DateTime       @default(now())
+  inventario   Inventario     @relation(fields: [inventarioId], references: [id], onDelete: Cascade)
+
+  @@map("movimientos_inventario")
+}
+
+model Configuracion {
+  id          Int      @id @default(autoincrement())
+  clave       String   @unique
+  valor       String
+  descripcion String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("configuraciones")
+}
+
+model Moneda {
+  id              Int                    @id @default(autoincrement())
+  codigo          String                 @unique
+  nombre          String
+  simbolo         String                 @default("$")
+  tasaDefecto     Decimal                @default(1) @db.Decimal(14, 4)
+  activo          Boolean                @default(true)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  gastos          GastoContenedor[]
+  tasasContenedor TasaCambioContenedor[]
+
+  @@map("monedas")
+}
+
+model TipoGasto {
+  id          Int               @id @default(autoincrement())
+  nombre      String            @unique
+  descripcion String?
+  activo      Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  gastos      GastoContenedor[]
+
+  @@map("tipos_gasto")
+}
+
+model TasaCambioContenedor {
+  id            Int         @id @default(autoincrement())
+  importacionId Int
+  monedaId      Int
+  tasaCambio    Decimal     @db.Decimal(14, 4)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  importacion   Importacion @relation(fields: [importacionId], references: [id], onDelete: Cascade)
+  moneda        Moneda      @relation(fields: [monedaId], references: [id])
+
+  @@unique([importacionId, monedaId])
+  @@map("tasas_cambio_contenedor")
+}
+
+model GastoContenedor {
+  id            Int         @id @default(autoincrement())
+  importacionId Int
+  tipoGastoId   Int
+  monedaId      Int
+  monto         Decimal     @db.Decimal(14, 4)
+  descripcion   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  importacion   Importacion @relation(fields: [importacionId], references: [id], onDelete: Cascade)
+  moneda        Moneda      @relation(fields: [monedaId], references: [id])
+  tipoGasto     TipoGasto   @relation(fields: [tipoGastoId], references: [id])
+
+  @@map("gastos_contenedor")
+}
+
+model Venta {
+  id                  Int             @id @default(autoincrement())
+  fechaInicio         DateTime
+  fechaFin            DateTime
+  totalTransferencias Decimal         @db.Decimal(15, 2)
+  totalUnidades       Int
+  totalCUP            Decimal         @db.Decimal(15, 2)
+  modoDistribucion    String
+  observaciones       String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  lineas              LineaVenta[]
+  transferencias      Transferencia[]
+
+  @@map("ventas")
+}
+
+model Transferencia {
+  id           Int      @id @default(autoincrement())
+  fecha        DateTime
+  monto        Decimal  @db.Decimal(15, 2)
+  refOrigen    String?  @unique @map("ref_origen")
+  refCorriente String?  @map("ref_corriente")
+  ordenante    String?
+  ventaId      Int?
+  createdAt    DateTime @default(now())
+  venta        Venta?   @relation(fields: [ventaId], references: [id])
+
+  @@map("transferencias")
+}
+
+model LineaVenta {
+  id                  Int               @id @default(autoincrement())
+  ventaId             Int
+  fecha               DateTime
+  productoId          Int
+  productoImportadoId Int
+  canal               String
+  cantidad            Int
+  precioUnitario      Decimal           @db.Decimal(15, 4)
+  subtotal            Decimal           @db.Decimal(15, 2)
+  createdAt           DateTime          @default(now())
+  producto            Producto          @relation(fields: [productoId], references: [id])
+  productoImportado   ProductoImportado @relation(fields: [productoImportadoId], references: [id])
+  venta               Venta             @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+
+  @@map("lineas_venta")
+}
+
+enum TipoMovimiento {
+  ENTRADA
+  SALIDA
+  MERMA
+  AJUSTE_POS
+  AJUSTE_NEG
+}

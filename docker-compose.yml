@@ -1,0 +1,52 @@
+services:
+  # Base de datos PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: gestion_comercial_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-gestion}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-gestion123}
+      POSTGRES_DB: ${DB_NAME:-gestion_comercial}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-gestion} -d ${DB_NAME:-gestion_comercial}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicación Next.js (Desarrollo)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: gestion_comercial_app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-gestion}:${DB_PASSWORD:-gestion123}@db:5432/${DB_NAME:-gestion_comercial}
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"  # Hot reload en Windows
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Hot reload en desarrollo
+      - .:/app
+      - node_modules:/app/node_modules
+      - next_cache:/app/.next
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
+    driver: local
+  node_modules:
+    driver: local
+  next_cache:
+    driver: local
